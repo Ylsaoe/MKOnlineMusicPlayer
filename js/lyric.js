@@ -14,27 +14,38 @@ function lyricTip(str) {
 
 // 歌曲加载完后的回调函数
 // 参数：歌词源文件
-function lyricCallback(str, id) {
-    if(id !== musicList[rem.playlist].item[rem.playid].id) return;  // 返回的歌词不是当前这首歌的，跳过
-    
-    rem.lyric = parseLyric(str);    // 解析获取到的歌词
-    
-    if(rem.lyric === '') {
-        lyricTip('没有歌词');
+function lyricCallback(str, id, tstr) {
+    if (id !== musicList[rem.playlist].item[rem.playid].id) {
+        if (mkPlayer.debug) {
+            console.debug("歌词id不符");
+        }
+        return; // 返回的歌词不是当前这首歌的，跳过
+    }
+    if (str === "") {
+        lyricTip('暂时没有歌词');
         return false;
     }
-    
-    lyricArea.html('');     // 清空歌词区域的内容
-    lyricArea.scrollTop(0);    // 滚动到顶部
-    
+    rem.lyric = parseLyric(str); // 解析获取到的歌词
+       //修改处：解析歌词翻译
+    rem.tlyric = parseLyric(tstr);
+
+
+    lyricArea.html(''); // 清空歌词区域的内容
+    lyricArea.scrollTop(0); // 滚动到顶部
+
     rem.lastLyric = -1;
-    
+
     // 显示全部歌词
     var i = 0;
-    for(var k in rem.lyric){
+    for (var k in rem.lyric) {
         var txt = rem.lyric[k];
-        if(!txt) txt = "&nbsp;";
-        var li = $("<li data-no='"+i+"' class='lrc-item'>"+txt+"</li>");
+        if (!txt) txt = "&nbsp;";
+       //修改处：判断有无翻译，若有则加入翻译
+        if (!rem.tlyric[k] || rem.tlyric[k] === '') {
+            var li = $("<li data-no='" + i + "' class='lrc-item'><span class='shell'>" + txt + "</span></li>");
+        } else {
+            var li = $("<li data-no='" + i + "' class='lrc-item'><span class='shell'>" + txt + "<br><span class='trans-lyric'>" + rem.tlyric[k] + "</span></span></li>");
+        }
         lyricArea.append(li);
         i++;
     }
