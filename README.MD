@@ -16,7 +16,7 @@ MKOnlineMusicPlayer 是一款全屏的音乐播放器 UI 框架（为避免侵�
 
 ### 相关链接
 -----
-**GitHub** [https://github.com/mengkunsoft/MKOnlineMusicPlayer](https://github.com/mengkunsoft/MKOnlineMusicPlayer)
+**GitHub** [https://github.com/431658/MKOnlineMusicPlayer](https://github.com/431658/MKOnlineMusicPlayer)
 
 ### 常见问题
 -----
