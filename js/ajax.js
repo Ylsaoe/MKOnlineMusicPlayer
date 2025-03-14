@@ -298,41 +298,32 @@ function ajaxPlayList(lid, id, callback) {
 // 参数：音乐ID，回调函数
 function ajaxLyric(music, callback) {
     lyricTip('歌词加载中...');
-
-    if (!music.lyric_id) callback(''); // 没有歌词ID，直接返回
-
+    
+    if(!music.lyric_id) callback('');  // 没有歌词ID，直接返回
+    
     $.ajax({
         type: mkPlayer.method,
         url: mkPlayer.api,
         data: "types=lyric&id=" + music.lyric_id + "&source=" + music.source,
-        dataType: "jsonp",
-        success: function(jsonData) {
+        dataType : "jsonp",
+        success: function(jsonData){
             // 调试信息输出
             if (mkPlayer.debug) {
                 console.debug("歌词获取成功");
             }
+            
             if (jsonData.lyric) {
-                rem.orgLyric = jsonData.lyric;
-                if (jsonData.tlyric) {
-                    rem.orgtLyric = jsonData.tlyric;
-                    //修改处：将tlyric传递给callback
-                    callback(jsonData.lyric, music.lyric_id, jsonData.tlyric); // 回调函数
-                } else {
-                    rem.orgtLyric = null;
-                    callback(jsonData.lyric, music.lyric_id); // 回调函数
-                }
+                callback(jsonData.lyric, music.lyric_id, jsonData.tlyric);    // 回调函数
             } else {
-                rem.orgLyric = null;
-                rem.orgtLyric = null;
-                callback('', music.lyric_id); // 回调函数
+                callback('', music.lyric_id);    // 回调函数
             }
-        }, //success
+        },   //success
         error: function(XMLHttpRequest, textStatus, errorThrown) {
-                layer.msg('歌词读取失败 - ' + XMLHttpRequest.status);
-                console.error(XMLHttpRequest + textStatus + errorThrown);
-                callback('', music.lyric_id); // 回调函数
-            } // error   
-    }); //ajax
+            layer.msg('歌词读取失败 - ' + XMLHttpRequest.status);
+            console.error(XMLHttpRequest + textStatus + errorThrown);
+            callback('', music.lyric_id);    // 回调函数
+        }   // error   
+    });//ajax
 }
 
 
