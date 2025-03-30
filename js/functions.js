@@ -315,53 +315,135 @@ function musicInfo(list, index) {
     }
 }
 
-// 展现搜索弹窗
+// 展现搜索弹窗 (优化版)
 function searchBox() {
-    var tmpHtml = '<form onSubmit="return searchSubmit()"><div id="search-area">' + 
-    '    <div class="search-group">' + 
-    '        <input type="text" name="wd" id="search-wd" placeholder="搜索歌手、歌名、专辑" autofocus required>' + 
-    '        <button class="search-submit" type="submit">搜 索</button>' + 
-    '    </div>' + 
-    '    <div class="radio-group" id="music-source">' + 
-    '       <label><input type="radio" name="source" value="netease" checked=""> 网易云</label>' + 
-    '       <label><input type="radio" name="source" value="tencent"> QQ</label>' + 
-    '       <label><input type="radio" name="source" value="xiami"> 虾米</label>' + 
-    '       <label><input type="radio" name="source" value="kugou"> 酷狗</label>' + 
-    '       <label><input type="radio" name="source" value="baidu"> 百度</label>' + 
-    '   </div>' + 
-    '</div></form>';
-    layer.open({
+    // 使用模板字符串构建结构
+    const searchHTML = `
+    <form class="search-form">
+        <div class="search-container">
+            <div class="search-input-group">
+                <input type="text" 
+                       name="wd" 
+                       id="search-wd" 
+                       class="search-input"
+                       placeholder="搜索歌手、歌名、专辑"
+                       autofocus
+                       required>
+                <button type="submit" class="search-submit-btn">搜 索</button>
+            </div>
+            <div class="music-source-group">
+                ${generateSourceOptions()}
+            </div>
+        </div>
+    </form>`;
+
+    // 创建弹窗实例
+    const layerInstance = layer.open({
         type: 1,
-        shade: false,
-        title: false, // 不显示标题
-        shade: 0.5,    // 遮罩颜色深度
+        title: '搜索音乐',
+        closeBtn: 1,
+        shade: 0.5,
         shadeClose: true,
-        content: tmpHtml,
-        cancel: function(){
+        skin: 'search-popup-layer',
+        content: searchHTML,
+        area: ['600px', 'auto'],
+        success: function(layero) {
+            initSearchState(layero);
+            bindSearchEvents(layero);
+        },
+        end: function() {
+            // 移除ESC键监听
+            $(document).off('keydown.escClose');
         }
     });
-    
-    // 恢复上一次的输入
-    $("#search-wd").focus().val(rem.wd);
-    $("#music-source input[name='source'][value='" + rem.source + "']").prop("checked", "checked");
-}
 
-// 搜索提交
-function searchSubmit() {
-    var wd = $("#search-wd").val();
-    if(!wd) {
-        layer.msg('搜索内容不能为空', {anim:6, offset: 't'});
-        $("#search-wd").focus();
-        return false;
+    // 生成平台选项
+    function generateSourceOptions() {
+        const sources = [
+            { value: 'netease', label: '网易云' },
+            { value: 'tencent', label: 'QQ音乐' },
+            { value: 'xiami', label: '虾米' },
+            { value: 'kugou', label: '酷狗' },
+            { value: 'baidu', label: '百度' }
+        ];
+        
+        return sources.map(({ value, label }) => `
+            <label class="source-option">
+                <input type="radio" 
+                       name="source" 
+                       value="${value}" 
+                       ${rem.source === value ? 'checked' : ''}>
+                <span>${label}</span>
+            </label>
+        `).join('');
     }
-    rem.source = $("#music-source input[name='source']:checked").val();
-    
-    layer.closeAll('page');     // 关闭搜索框
-    
-    rem.loadPage = 1;   // 已加载页数复位
-    rem.wd = wd;    // 搜索词
-    ajaxSearch();   // 加载搜索结果
-    return false;
+
+    // 初始化状态
+    function initSearchState(container) {
+        const $input = $(container).find('#search-wd');
+        $input.val(rem.wd || '').trigger('focus');
+    }
+
+    // 绑定事件
+    function bindSearchEvents(container) {
+        const $form = $(container).find('.search-form');
+        
+        // 表单提交
+        $form.on('submit', function(e) {
+            e.preventDefault();
+            handleSearchSubmit(this);
+        });
+
+        // ESC键关闭（添加命名空间防止冲突）
+        $(document).on('keydown.escClose', function(e) {
+            if (e.key === "Escape") {
+                layer.close(layerInstance);
+            }
+        });
+
+        // 关闭按钮样式
+        $(container).find('.layui-layer-close')
+            .addClass('custom-close-btn')
+            .on('click', function() {
+                layer.msg('已取消搜索', {icon: 1});
+            });
+    }
+
+    // 处理搜索提交（整合原searchSubmit逻辑）
+    function handleSearchSubmit(form) {
+        const formData = new FormData(form);
+        const keyword = formData.get('wd').trim();
+        const source = formData.get('source');
+
+        if (!validateKeyword(keyword)) {
+            showSearchError('搜索内容不能为空');
+            return;
+        }
+
+        // 保存状态
+        rem.source = source;
+        rem.wd = keyword;
+        rem.loadPage = 1;
+
+        // 执行搜索
+        ajaxSearch();
+        layer.close(layerInstance);
+    }
+
+    // 验证关键词
+    function validateKeyword(keyword) {
+        return keyword.length > 0 && keyword.length <= 50;
+    }
+
+    // 显示错误
+    function showSearchError(message) {
+        layer.msg(message, {
+            anim: 6,
+            offset: 't',
+            time: 2000
+        });
+        $('#search-wd').addClass('error-state').focus();
+    }
 }
 
 // 下载正在播放的这首歌

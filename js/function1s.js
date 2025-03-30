@@ -156,36 +156,83 @@ $(function(){
         }
         loadList(num);
     });
-    
+
     // 点击同步云音乐
     $("#sheet").on("click",".login-in", function() {
-        layer.prompt(
-        {
-            title: '请输入您的网易云 UID',
-            // value: '',  // 默认值
-            btn: ['确定', '取消', '帮助'],
+        layer.prompt({
+            title: '<i class="fa fa-music" style="margin-right:8px"></i>请输入您的网易云 UID',
+            skin: 'custom-popup',
+            style: 'border-radius:12px !important;', // 主弹窗圆角
+            btn: ['<i class="fa fa-check"></i> 确定', '<i class="fa fa-times"></i> 取消', '<i class="fa fa-question-circle"></i> 帮助'],
+            btnAlign: 'right',
+            anim: 2,
+            formType: 0,
+            success: function(layero) { // 弹窗创建回调
+                // 输入框样式
+                $(layero).find('.layui-layer-input')
+                    .css({
+                        'border-radius': '8px',
+                        'border': '2px solid #e8e8e8',
+                        'padding': '10px 15px'
+                    });
+    
+                // 主按钮组容器
+                $(layero).find('.layui-layer-btn')
+                    .css('border-radius', '0 0 12px 12px')
+                    .children('a').each(function() { // 每个按钮单独设置
+                        $(this).css({
+                            'border-radius': '6px',
+                            'padding': '8px 20px',
+                            'margin-left': '10px'
+                        });
+                    });
+    
+                // 特殊样式帮助按钮
+                $(layero).find('.layui-layer-btn2')
+                    .css({
+                        'border-radius': '20px',
+                        'background': 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
+                        'border': '1px solid #dee2e6'
+                    });
+            },
             btn3: function(index, layero){
                 layer.open({
-                    title: '如何获取您的网易云UID？'
-                    ,shade: 0.6 //遮罩透明度
-                    ,anim: 0 //0-6的动画形式，-1不开启
-                    ,content: 
-                    '1、首先<a href="http://music.163.com/" target="_blank">点我(http://music.163.com/)</a>打开网易云音乐官网<br>' +
-                    '2、然后点击页面右上角的“登录”，登录您的账号<br>' + 
-                    '3、点击您的头像，进入个人中心<br>' + 
-                    '4、此时<span style="color:red">浏览器地址栏</span> <span style="color: green">/user/home?id=</span> 后面的<span style="color:red">数字</span>就是您的网易云 UID'
-                });  
+                    title: '<i class="fa fa-info-circle"></i> 如何获取您的网易云UID？',
+                    skin: 'custom-popup',
+                    style: 'border-radius:12px !important;', // 子弹窗圆角
+                    shade: 0.5,
+                    anim: 1,
+                    content: `<ol class="custom-steps">...</ol>`,
+                    success: function(childLayero) { // 子弹窗样式
+                        $(childLayero)
+                            .find('.layui-layer-content')
+                            .css('border-radius', '0 0 12px 12px');
+                        
+                        $(childLayero).find('.custom-steps li')
+                            .css({
+                                'border-radius': '8px',
+                                'margin': '8px 0',
+                                'padding': '12px'
+                            });
+                    }
+                });
             }
         },
-        function(val, index){   // 输入后的回调函数
-            if(isNaN(val)) {
-                layer.msg('uid 只能是数字',{anim: 6});
+        function(val, index){
+            if(!/^\d+$/.test(val)) {
+                layer.msg('<i class="fa fa-warning"></i> UID只能是数字', {
+                    anim: 6,
+                    time: 2000,
+                    skin: 'custom-msg',
+                    style: 'border-radius:8px !important;' // 错误提示圆角
+                });
                 return false;
             }
             layer.close(index);     // 关闭输入框
             ajaxUserList(val);
         });
     });
+
     
     // 刷新用户列表
     $("#sheet").on("click",".login-refresh", function() {
